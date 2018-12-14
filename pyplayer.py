@@ -12,11 +12,34 @@ window = uic.loadUi("pyplayer.ui")
 pygame.mixer.init()
 musicPlayer = pygame.mixer.music
 
-#Play music from local directory
-songPath = '../music.mp3'
-musicPlayer.load(songPath)
-musicProperty = MP3(songPath)
-musicTag = EasyID3(songPath)
+# Song informations
+def musicChange(songPath):
+  musicProperty = MP3(songPath)
+  musicTag = EasyID3(songPath)
+  global musicPlayer
+  try:
+    window.label_title.setText(musicTag["title"][0])
+  except:
+    window.label_title.setText('Unknown')
+  try:
+    window.label_album.setText(musicTag["album"][0])
+  except:
+    window.label_album.setText('Unknown')
+  try:
+    window.label_artist.setText(musicTag["artist"][0])
+  except:
+    window.label_artist.setText('Unknown')
+
+  songLength = musicProperty.info.length
+  # div - total_length/60, mod - total_length % 60
+  mins, secs = divmod(songLength, 60)
+  mins = round(mins)
+  secs = round(secs)
+  window.label_songtime.setText('{:02d}:{:02d}'.format(mins, secs))
+  #Song seek slider
+  window.Slider_songtime.setRange(0,songLength)
+  #window.Slider_songtime.sliderReleased.connect(seek)
+  musicPlayer.load(songPath)
 
 isPause   = 0
 playTime  = 0
@@ -81,27 +104,25 @@ def volumeChange():
   playVolume = window.Slider_volume.value()/10
   musicPlayer.set_volume(playVolume)
 
+def manuSelect(selection):
+  if(selection.text() == 'Open Folder'):
+    songPath = QtWidgets.QFileDialog.getOpenFileName(window, 'Open file', 'c:\\',"Music files (*.mp3)")
+    songPath = songPath[0]
+    print(songPath)
+    musicChange(songPath)
+    musicPlayer.load(songPath)
+    stop()
+  if(selection.text() == 'About'):
+    QtWidgets.QMessageBox.about(window, "About", " simple pyplayer V1.0 \nAuthor : importfunfromcode@gmail.com ")
+
+window.menubar.triggered[QtWidgets.QAction].connect(manuSelect)
 window.pushButton_play.clicked.connect(play)
 window.pushButton_pause.clicked.connect(pause)
 window.pushButton_stop.clicked.connect(stop)
 window.pushButton_volUp.clicked.connect(volumeUp)
 window.pushButton_volDown.clicked.connect(volumeDown)
 
-# Song informations
-window.label_title.setText(musicTag["title"][0])
-window.label_album.setText(musicTag["album"][0])
-window.label_artist.setText(musicTag["artist"][0])
-songLength = musicProperty.info.length
-# div - total_length/60, mod - total_length % 60
-mins, secs = divmod(songLength, 60)
-mins = round(mins)
-secs = round(secs)
-window.label_songtime.setText('{:02d}:{:02d}'.format(mins, secs))
 
-
-#Song seek slider
-window.Slider_songtime.setRange(0,songLength)
-#window.Slider_songtime.sliderReleased.connect(seek)
 
 #Volume slider
 window.Slider_volume.setRange(0,10)
