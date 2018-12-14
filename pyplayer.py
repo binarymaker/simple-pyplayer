@@ -3,6 +3,7 @@ import time
 from PyQt5 import QtGui, QtWidgets, QtCore, uic
 import pygame
 from mutagen.mp3 import MP3
+from mutagen.easyid3 import EasyID3
 
 app = QtWidgets.QApplication([])
 window = uic.loadUi("pyplayer.ui")
@@ -14,7 +15,8 @@ musicPlayer = pygame.mixer.music
 #Play music from local directory
 songPath = '../music.mp3'
 musicPlayer.load(songPath)
-musicTag = MP3(songPath)
+musicProperty = MP3(songPath)
+musicTag = EasyID3(songPath)
 
 isPause   = 0
 playTime  = 0
@@ -85,17 +87,20 @@ window.pushButton_stop.clicked.connect(stop)
 window.pushButton_volUp.clicked.connect(volumeUp)
 window.pushButton_volDown.clicked.connect(volumeDown)
 
-songLength = musicTag.info.length
+# Song informations
+window.label_title.setText(musicTag["title"][0])
+window.label_album.setText(musicTag["album"][0])
+window.label_artist.setText(musicTag["artist"][0])
+songLength = musicProperty.info.length
 # div - total_length/60, mod - total_length % 60
 mins, secs = divmod(songLength, 60)
 mins = round(mins)
 secs = round(secs)
 window.label_songtime.setText('{:02d}:{:02d}'.format(mins, secs))
 
-#Slider
+
+#Song seek slider
 window.Slider_songtime.setRange(0,songLength)
-#window.Slider_songtime.setTickInterval(20)
-#window.Slider_songtime.setSingleStep(2)
 #window.Slider_songtime.sliderReleased.connect(seek)
 
 #Volume slider
